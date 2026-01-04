@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <!-- <link rel="icon" href="icon512.png"> -->
+        <title>20260104_wasm_host</title>
+    </head>
+    <script src="wasm_exec.js"></script>
+    <script>
+    // Polyfill
+    if (!WebAssembly.instantiateStreaming) {
+        WebAssembly.instantiateStreaming = async (resp, importObject) => {
+            const source = await (await resp).arrayBuffer();
+            return await WebAssembly.instantiate(source, importObject);
+        };
+    }
+    
+    const go = new Go();
+    WebAssembly.instantiateStreaming(fetch("hittsuki-clothes.wasm"), go.importObject).then(result => {
+        go.run(result.instance);
+    });
+    </script>
+
+    <!-- <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+    <script>
+        function saveImage(bytes) {
+            console.log("js was called")
+            // console.log(bytes)
+    
+            // Uint8ArrayをBlobオブジェクトに変換
+            var blob = new Blob([bytes], { type: 'image/png' }); // typeを適切な画像形式に合わせて設定
+    
+            // BlobオブジェクトをURLに変換
+            var imageUrl = URL.createObjectURL(blob);
+    
+            // 画像要素を作成して表示
+            var imgElement = document.createElement('img');
+            imgElement.src = imageUrl;
+            // document.body.appendChild(imgElement);
+    
+            var a = document.createElement("a");
+            // 保存する画像データをセットする。
+            a.href = imageUrl;
+            // (参考) href の内容は DataURL 形式のテキストです。
+            console.log(a.href);
+            // ファイル名をセットする。
+            a.download = "hittsuki_" + getDate() + ".png";
+            // a タグをクリックする。リンクをクリックする動作になります。
+            a.click();
+    
+            alert('画像を保存しました！ストーリーに投稿してね！');
+        }
+    
+        function getDate() {
+            let now = new Date();
+            let year = now.getFullYear();
+            let month = now.getMonth() + 1;
+            let date = now.getDate();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            let seconds = now.getSeconds();
+            month = month < 10 ? '0' + month : month;
+            date = date < 10 ? '0' + date : date;
+            hours = hours < 10 ? '0' + hours : hours;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            seconds = seconds < 10 ? '0' + seconds : seconds;
+    
+            let yyyymmddhhmmss = '' + year + month + date + hours + minutes + seconds;
+            return yyyymmddhhmmss;
+        }
+
+        function getRotation(src) {
+            console.log(src.type)
+
+            let finished = false;
+            EXIF.getData(src, function(){ //EXIF.getDataでEXIF情報を取得
+                var exifData = EXIF.pretty(this);
+
+                let rotation = 0;
+
+                if (exifData) { //Exifデータのチェック Exifがない場合は、空が返ってきます
+                    orientation = EXIF.getTag(this, "Orientation"); //Orientation情報を格納
+
+                    //あとはOrientation情報で写真の向きを補正させる
+                    console.log(orientation.toString());
+                    if (orientation.toString() == "3") {
+                        rotation = 180;
+                    } else if (orientation.toString() == "6") {
+                        rotation = 90;
+                    } else if (orientation.toString() == "8") {
+                        rotation = 270;
+                    } else if (orientation.toString() == "0") {
+                        rotation = 90;
+                    }
+                } else {
+                    console.log("doesn't have exif")
+                }
+
+                localStorage.setItem('rotation', rotation);
+            });
+        }
+
+        function fetchRotation() {
+            return parseInt(localStorage.getItem('rotation'))
+        }
+
+        function ImageResize(image_src, mime_type, width, height, rotate) {
+            // New Canvas
+            var canvas = document.createElement('canvas');
+            if(rotate == 90 || rotate == 270) {
+                // swap w <==> h
+                canvas.width = height;
+                canvas.height = width;
+            } else {
+                canvas.width = width;
+                canvas.height = height;
+            }
+            // Draw (Resize)
+            var ctx = canvas.getContext('2d');
+            if(rotate && rotate > 0) {
+                ctx.rotate(rotate * Math.PI / 180);
+                if(rotate == 90)
+                    ctx.translate(0, -height);
+                else if(rotate == 180)
+                    ctx.translate(-width, -height);
+                else if(rotate == 270)
+                    ctx.translate(-width, 0);
+            }
+            ctx.drawImage(image_src, 0, 0, width, height);
+            // Image Base64
+            return canvas.toDataURL(mime_type);
+        }
+    </script> -->
+</html>
